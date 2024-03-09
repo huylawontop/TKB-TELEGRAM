@@ -7,12 +7,13 @@ from typing import Final
 from telegram import Update
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackContext
 import pandas as pd
+import numpy as np
 
-dfs = pd.read_excel(r"D:\tkb telegram\tkb.xlsx", sheet_name=0)
+dfs = pd.read_excel(r"D:\tkb telegram\TKB-TELEGRAM\tkb.xlsx", sheet_name=0)
 
 
-TOKEN = 'YOURTOKEN'
-BOT_USERNAME: Final = '@nameurbot'
+TOKEN = '6851514752:AAGvlOnlj28V2I3gjTdFYUbZZnf-2eY0rMA'
+BOT_USERNAME: Final = '@huylaw_bot'
 
 
 mapping = {
@@ -28,22 +29,16 @@ dfs = pd.read_excel('tkb.xlsx', sheet_name=0)
 def start(update, context):
     context.bot.send_message(chat_id=update.effective_chat.id, text="Hi! huylaw, Vui lòng Nhập lớp (vd: 10A1, 11A2,12A3,..)")
 
-
 def handle_message(update, context):
-    
     message_text = update.message.text.strip()
 
-    
     if message_text in mapping:
-        
         context.user_data['class'] = message_text
         context.bot.send_message(chat_id=update.effective_chat.id, text="đã cập nhật lớp, nhập thứ (vd: 2 (tương ứng với thứ 2), 3 (tương ứng với thứ 3),...)")
     elif 'class' not in context.user_data:
-        
         context.user_data['class'] = message_text
         context.bot.send_message(chat_id=update.effective_chat.id, text="nhập thứ (vd: 2 (tương ứng với thứ 2), 3 (tương ứng với thứ 3),...)")
     elif 'day' not in context.user_data:
-        
         day_input = message_text
         print(f"Received day input: {day_input}")  # Debug statement
 
@@ -51,33 +46,32 @@ def handle_message(update, context):
         try:
             day_index = int(day_input) - 2  
 
-            
             class_input = context.user_data['class']
-            
-            
             x = mapping.get(class_input)
             if x is not None:
-                
                 column_index = x + 1
 
+                # Accessing values horizontally
+                row_values = dfs.iloc[7:37, 0:].values  # Exclude the first two columns
                 
-                row_values = dfs.iloc[7:37, 0:].values  
-                
-                line_count = 0  
+                # Replace empty cells or NaN values with "Trống"
+                row_values[row_values == ""] = "Trống"
+                row_values = np.where(pd.isna(row_values), "Trống", row_values)
+
+                line_count = 0  # Variable to keep track of the line count
                 days = ["thứ 2", "thứ 3", "thứ 4", "thứ 5", "thứ 6", "thứ 7"]
 
-                
+                # Print the values for the specified day of the week
                 response = f"{class_input} - {days[day_index]}\n"
                 for row in row_values:
                     if line_count % 5 == 0 and line_count // 5 == day_index:
-                        response += row[column_index] + "\n"
+                        response += str(row[column_index]) + "\n"
                         line_count += 1
                     elif line_count // 5 == day_index:
-                        response += row[column_index] + "\n"
+                        response += str(row[column_index]) + "\n"
                         line_count += 1 
                     else:
                         line_count += 1
-                    
                 
                 context.bot.send_message(chat_id=update.effective_chat.id, text=response)
             else:
@@ -85,7 +79,6 @@ def handle_message(update, context):
         except ValueError:
             context.bot.send_message(chat_id=update.effective_chat.id, text="Sai Ngày vui lòng nhập lại (vd: 2 (tương ứng với thứ 2), 3 (tương ứng với thứ 3),...)(Nếu chọn lại lớp vui lòng viết Đẩy đủ hoa lớp VD: 10A2,11A2,...)")
     else:
-        
         context.user_data['class'] = message_text
         context.bot.send_message(chat_id=update.effective_chat.id, text="đã cập nhật lớp, nhập thứ (vd: 2 (tương ứng với thứ 2), 3 (tương ứng với thứ 3),...)(Nếu chọn lại lớp vui lòng viết Đẩy đủ hoa lớp VD: 10A2,11A2,...)")
 
