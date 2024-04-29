@@ -8,3 +8,6 @@ install pandas
 install telegram
 
     pip install telegram
+install python-telegram-bot
+
+    pip install python-telegram-bot
