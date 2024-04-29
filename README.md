@@ -11,3 +11,6 @@ install telegram
 install python-telegram-bot
 
     pip install python-telegram-bot
+install openpyxl
+
+    pip install openpyxl
